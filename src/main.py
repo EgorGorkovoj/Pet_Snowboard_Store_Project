@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 
-from src.config import settings
+from src.api.v1.router import main_router
+from src.core.config.app import settings
 
 app_v1 = FastAPI(title=settings.app_title, description=settings.app_description)
 
-# app_v1.router.include_router()
+app_v1.router.include_router(main_router)
 
 
 def main():
