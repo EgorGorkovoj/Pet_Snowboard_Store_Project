@@ -7,6 +7,20 @@
 """
 
 
+class LengthConstants:
+    """
+    Базовый класс констант для ограничения длины символов полей.
+
+    Атрибуты:
+    - TITLE_LENGTH (int): Максимальная длина названия товара.
+    - MODEL_LENGTH (int): Максимальная длина модели товара.
+    """
+
+    TITLE_LENGTH: int = 100
+    MODEL_LENGTH: int = 50
+    FILE_LINK_MAX_LENGTH: int = 2048
+
+
 class LoggingBaseConstants:
     """
     Базовый класс констант для хранения параметров логирования приложения.
