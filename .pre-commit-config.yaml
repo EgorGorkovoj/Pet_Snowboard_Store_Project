@@ -2,8 +2,8 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
-      # - id: no-commit-to-branch
-      #   name: Check to see if a commit is pushed to a safe branch
+      - id: no-commit-to-branch
+        name: Check to see if a commit is pushed to a safe branch
       - id: check-toml
         name: Check the files with `.toml` format
       - id: check-yaml

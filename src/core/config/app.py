@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     db_type: str
     db_api: str
     db_host: str
+    log_level: str
 
     @property
     def database_url(self):
