@@ -39,7 +39,22 @@ class Category(BoardShopBase):
 
 
 class Brand(BoardShopBase):
-    """pass"""
+    """
+    Модель брэнда товара.
+
+    Поля:
+        id: Идентификационный номер.
+        name: Название брэнда.
+
+    Связи (атрибут - Модель):
+        parent_category - Category;
+        categories - Category;
+        products - Product.
+    """
+
+    name: Mapped[str] = mapped_column(
+        String(LengthConstants.BRAND_LENGTH), nullable=False, unique=True
+    )
 
     products: Mapped[List['Product']] = relationship(back_populates='brand')
 
@@ -72,7 +87,9 @@ class Product(BoardShopBase):
     category_id: Mapped[int] = mapped_column(
         ForeignKey('category.id', ondelete='SET NULL'), nullable=False
     )
-    brand_id: Mapped[str] = mapped_column(ForeignKey('brand.id'), nullable=False)
+    brand_id: Mapped[str] = mapped_column(
+        ForeignKey('brand.id', ondelete='SET NULL'), nullable=False
+    )
     model: Mapped[Optional[str]] = mapped_column(
         String(LengthConstants.MODEL_LENGTH), nullable=True
     )
@@ -87,3 +104,30 @@ class Product(BoardShopBase):
 
     def __repr__(self) -> str:
         return self.title
+
+
+class ProductOption(BoardShopBase):
+    """
+    Модель вариантов одного товара.
+
+    Назначение:
+        Каждый товар имеет свои характеристики. И в зависимости например от размера и цвета,
+        один и тот же товар может иметь свою цену и количество на складе.
+
+    Поля:
+        id: Идентификационный номер.
+        product_id: Товар (внешний ключ к таблице товаров).
+        article: Артикул товара.
+        amount: Количество товара.
+        available: Доступность товара (если amount > 0 True).
+        is_active: Активен ли товар (если False то недоступен на сайте).
+        price: Цена товара.
+
+    Связи (атрибут - Модель):
+        products - Product;
+        atributes - ProductOptionAttribute;
+        cart_item - CartItem;
+        order_item - OrderItem
+    """
+
+    pass

@@ -20,6 +20,7 @@ class LengthConstants:
     MODEL_LENGTH: int = 50
     FILE_LINK_MAX_LENGTH: int = 2048
     SLUG: int = 110
+    BRAND_LENGTH = 100
 
 
 class LoggingBaseConstants:
