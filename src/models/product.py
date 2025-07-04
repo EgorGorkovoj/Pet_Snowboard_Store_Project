@@ -8,8 +8,33 @@ from src.models.base import BoardShopBase
 
 
 class Category(BoardShopBase):
-    """sd"""
+    """
+    Модель категорий товаров.
 
+    Поля:
+        id: Идентификационный номер.
+        title: Название товара.
+        slug: Короткая строка для пути к эндпоинту.
+        subcategory: Подкатегория товаров (внешний ключ к родительской категории).
+
+    Связи (атрибут - Модель):
+        parent_category - Category;
+        categories - Category;
+        products - Product.
+    """
+
+    title: Mapped[str] = mapped_column(
+        String(LengthConstants.TITLE_LENGTH), nullable=False, unique=True
+    )
+    slug: Mapped[str] = mapped_column(String(LengthConstants.SLUG), nullable=False, unique=True)
+    subcategory: Mapped[Optional[int]] = mapped_column(ForeignKey('category.id'), nullable=True)
+
+    parent_category: Mapped[Optional['Category']] = relationship(
+        'Category', back_populates='categories', remote_side=[id]
+    )
+    categories: Mapped[List['Category']] = relationship(
+        'Category', back_populates='parent_category', cascade='all, delete-orphan'
+    )
     products: Mapped[List['Product']] = relationship(back_populates='category')
 
 
