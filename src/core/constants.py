@@ -2,7 +2,7 @@
 Базовый модуль констант проекта.
 
 Содержит фундаментальные константы, используемые во всех компонентах системы.
-Организован по принципу "контейнеров констант" - вложенных классов, группирующих
+Организован по принципу "контейнеров констант" - классов, группирующих
 константы по функциональному назначению.
 """
 
@@ -13,7 +13,11 @@ class LengthConstants:
 
     Атрибуты:
     - TITLE_LENGTH (int): Максимальная длина названия товара.
-    - MODEL_LENGTH (int): Максимальная длина модели товара.
+    - MODEL_LENGTH (int): Максимальная длина модели (разновидность внутри бренда) товара.
+    - FILE_LINK_MAX_LENGTH (int): Максимальная длина ссылки на изображение товара.
+    - SLUG (int): Максимальная длина slug товара.
+    - BRAND_LENGTH (int): Максимальная длина названия бренда товара.
+    - ARTICLE_LENGTH (int): Максимальная длина артикула.
     """
 
     TITLE_LENGTH: int = 100
@@ -21,6 +25,31 @@ class LengthConstants:
     FILE_LINK_MAX_LENGTH: int = 2048
     SLUG: int = 110
     BRAND_LENGTH = 100
+    ARTICLE_LENGTH = 64
+
+
+# class DefaultValueConstants:
+#     """
+#     Базовый класс констант для значений по умолчанию в БД.
+
+#     Атрибуты:
+#     - PRODUCT_AMOUNT (int): Количество определенного товара (по умолчанию).
+#     """
+
+#     PRODUCT_AMOUNT: int = 0
+
+
+class PriceConstants:
+    """
+    Базовый класс констант для цен товара.
+
+    Атрибуты:
+    - BOARDSHOP_PRICE_NUMBER_OF_DIGITS (int): целая часть цены товара.
+    - BOARDSHOP_PRICE_FRACTIONAL_PART (int): сколько знаков после запятой у цены товара.
+    """
+
+    BOARDSHOP_PRICE_NUMBER_OF_DIGITS: int = 10
+    BOARDSHOP_PRICE_FRACTIONAL_PART: int = 2
 
 
 class LoggingBaseConstants:

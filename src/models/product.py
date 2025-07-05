@@ -1,9 +1,11 @@
+from decimal import Decimal
 from typing import List, Optional
 
-from sqlalchemy import ForeignKey, SmallInteger, String, Text
+from sqlalchemy import Boolean, ForeignKey, Numeric, SmallInteger, String, Text
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.core.constants import LengthConstants
+from src.core.constants import LengthConstants, PriceConstants
 from src.models.base import BoardShopBase
 
 
@@ -106,6 +108,9 @@ class Product(BoardShopBase):
         return self.title
 
 
+# TODO: available в докстринге удалить
+
+
 class ProductOption(BoardShopBase):
     """
     Модель вариантов одного товара.
@@ -130,4 +135,26 @@ class ProductOption(BoardShopBase):
         order_item - OrderItem
     """
 
-    pass
+    product_id: Mapped['Product'] = mapped_column(
+        ForeignKey('product.id', ondelete='CASCADE'), nullable=False
+    )
+    article: Mapped[str] = mapped_column(
+        String(LengthConstants.ARTICLE_LENGTH), unique=True, nullable=False
+    )
+    amount: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    price: Mapped[Decimal] = mapped_column(
+        Numeric(
+            PriceConstants.BOARDSHOP_PRICE_NUMBER_OF_DIGITS,
+            PriceConstants.BOARDSHOP_PRICE_FRACTIONAL_PART,
+        ),
+        nullable=False,
+    )
+
+    @hybrid_property
+    def available(self) -> bool:
+        return self.amount > 0
+
+    @available.expression
+    def available(cls) -> bool:
+        return cls.amount > 0
