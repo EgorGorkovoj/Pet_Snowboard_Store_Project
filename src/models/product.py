@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import Boolean, ForeignKey, Numeric, SmallInteger, String, Text
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -7,6 +7,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.constants import LengthConstants, PriceConstants
 from src.models.base import BoardShopBase
+
+if TYPE_CHECKING:
+    from src.models.attribute import CategoryAttribute, ProductOptionAttribute
+    from src.models.cart import CartItem
+    from src.models.order import OrderItem
 
 
 class Category(BoardShopBase):
@@ -35,9 +40,12 @@ class Category(BoardShopBase):
         'Category', back_populates='categories', remote_side=[id]
     )
     categories: Mapped[List['Category']] = relationship(
-        'Category', back_populates='parent_category', cascade='all, delete-orphan'
+        'Category', back_populates='parent_category', cascade='all, delete-orphan', lazy='selectin'
     )
-    products: Mapped[List['Product']] = relationship(back_populates='category')
+    products: Mapped[List['Product']] = relationship(back_populates='category', lazy='selectin')
+    category_attributes: Mapped[List['CategoryAttribute']] = relationship(
+        'CategoryAttribute', back_populates='category', lazy='selectin'
+    )
 
 
 class Brand(BoardShopBase):
@@ -81,7 +89,7 @@ class Product(BoardShopBase):
     Связи (атрибут - Модель):
         categorys - Category;
         brands - Brand;
-        product_variants - ProductVariant.
+        product_options - ProductOption.
     """
 
     title: Mapped[str] = mapped_column(String(LengthConstants.TITLE_LENGTH), nullable=False)
@@ -99,16 +107,17 @@ class Product(BoardShopBase):
     image_url: Mapped[Optional[str]] = mapped_column(
         String(LengthConstants.FILE_LINK_MAX_LENGTH), nullable=True
     )
+
     category: Mapped['Category'] = relationship(
         'Category', back_populates='products', lazy='selectin'
     )
     brand: Mapped['Brand'] = relationship('Brand', back_populates='products', lazy='selectin')
+    product_options: Mapped[List['ProductOption']] = relationship(
+        'ProductOption', back_populates='product', cascade='all, delete-orphan'
+    )
 
     def __repr__(self) -> str:
         return self.title
-
-
-# TODO: available в докстринге удалить
 
 
 class ProductOption(BoardShopBase):
@@ -116,8 +125,8 @@ class ProductOption(BoardShopBase):
     Модель вариантов одного товара.
 
     Назначение:
-        Каждый товар имеет свои характеристики. И в зависимости например от размера и цвета,
-        один и тот же товар может иметь свою цену и количество на складе.
+        Представляет конкретную модификацию товара (например, сноуборд 158 см, черный).
+        У каждого варианта может быть свой артикул, цена и количество на складе.
 
     Поля:
         id: Идентификационный номер.
@@ -128,11 +137,14 @@ class ProductOption(BoardShopBase):
         is_active: Активен ли товар (если False то недоступен на сайте).
         price: Цена товара.
 
+    Вычисляемые свойства:
+        available: Вычисляется автоматически (если amount > 0). Не сохраняется в БД.
+
     Связи (атрибут - Модель):
         products - Product;
-        atributes - ProductOptionAttribute;
-        cart_item - CartItem;
-        order_item - OrderItem
+        attributes - ProductOptionAttribute;
+        cart_items - CartItem;
+        order_items - OrderItem
     """
 
     product_id: Mapped['Product'] = mapped_column(
@@ -149,6 +161,22 @@ class ProductOption(BoardShopBase):
             PriceConstants.BOARDSHOP_PRICE_FRACTIONAL_PART,
         ),
         nullable=False,
+    )
+
+    product: Mapped['Product'] = relationship(
+        'Product', back_populates='product_options', lazy='joined'
+    )
+    attributes: Mapped[List['ProductOptionAttribute']] = relationship(
+        'ProductOptionAttribute',
+        back_populates='product_option',
+        cascade='all, delete-orphan',
+        lazy='selectin',
+    )
+    cart_items: Mapped[List['CartItem']] = relationship(
+        'CartItem', back_populates='product_option', lazy='selectin'
+    )
+    order_items: Mapped[List['OrderItem']] = relationship(
+        'OrderItem', back_populates='product_option', lazy='selectin'
     )
 
     @hybrid_property

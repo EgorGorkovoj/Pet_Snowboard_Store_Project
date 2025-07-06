@@ -18,14 +18,16 @@ class LengthConstants:
     - SLUG (int): Максимальная длина slug товара.
     - BRAND_LENGTH (int): Максимальная длина названия бренда товара.
     - ARTICLE_LENGTH (int): Максимальная длина артикула.
+    - ATTRIBUTE_LENGTH (int): Максимальная длина названия и значения характеристики товара.
     """
 
     TITLE_LENGTH: int = 100
     MODEL_LENGTH: int = 50
     FILE_LINK_MAX_LENGTH: int = 2048
     SLUG: int = 110
-    BRAND_LENGTH = 100
-    ARTICLE_LENGTH = 64
+    BRAND_LENGTH: int = 100
+    ARTICLE_LENGTH: int = 64
+    ATTRIBUTE_LENGTH: int = 50
 
 
 # class DefaultValueConstants:
