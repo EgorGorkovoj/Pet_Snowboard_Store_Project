@@ -173,7 +173,7 @@ class ProductOption(BoardShopBase):
         lazy='selectin',
     )
     cart_items: Mapped[List['CartItem']] = relationship(
-        'CartItem', back_populates='product_option', lazy='selectin'
+        'CartItem', back_populates='product_option', cascade='all, delete-orphan', lazy='selectin'
     )
     order_items: Mapped[List['OrderItem']] = relationship(
         'OrderItem', back_populates='product_option', lazy='selectin'

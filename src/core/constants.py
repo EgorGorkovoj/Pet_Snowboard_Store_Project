@@ -30,15 +30,15 @@ class LengthConstants:
     ATTRIBUTE_LENGTH: int = 50
 
 
-# class DefaultValueConstants:
-#     """
-#     Базовый класс констант для значений по умолчанию в БД.
+class DefaultValueConstants:
+    """
+    Базовый класс констант для значений по умолчанию в БД.
 
-#     Атрибуты:
-#     - PRODUCT_AMOUNT (int): Количество определенного товара (по умолчанию).
-#     """
+    Атрибуты:
+    - CART_ITEM_AMOUNT (int): Количество товара в корзине.
+    """
 
-#     PRODUCT_AMOUNT: int = 0
+    CART_ITEM_AMOUNT: int = 1
 
 
 class PriceConstants:

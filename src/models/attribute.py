@@ -95,7 +95,7 @@ class CategoryAttribute(BoardShopBase):
         ForeignKey('category.id', ondelete='CASCADE'), nullable=False
     )
     attribute_id: Mapped[int] = mapped_column(
-        ForeignKey('attribute.id', ondelete='SETNULL'), nullable=False
+        ForeignKey('attribute.id', ondelete='CASCADE'), nullable=False
     )
 
     category: Mapped['Category'] = relationship(
