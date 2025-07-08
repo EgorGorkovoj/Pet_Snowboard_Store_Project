@@ -1,15 +1,20 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import ForeignKey, Numeric, SmallInteger, String
+from sqlalchemy import Enum, ForeignKey, Numeric, SmallInteger, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.constants import DefaultValueConstants, PriceConstants
 from src.models.base import BoardShopBase
 
 if TYPE_CHECKING:
+    from src.models.enum import OrderStatus
     from src.models.product import ProductOption
     from src.models.user import User
+
+# TODO Вынести все в константы, проверить докстринги
+# TODO Продумать модель скидок, занести в ERD!
+# TODO Продумать как связать поле с адресом пользователя, логика автозаполнения!
 
 
 class Order(BoardShopBase):
@@ -36,8 +41,16 @@ class Order(BoardShopBase):
     user_id: Mapped[int] = mapped_column(
         ForeignKey('user.uuid', ondelete='SET NULL'), nullable=True
     )
-    status: Mapped[str] = mapped_column(String(64), default='processing')
-    total_price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    status: Mapped['OrderStatus'] = mapped_column(
+        Enum(OrderStatus, name='orderstatus'), default=OrderStatus.PROCESSING, nullable=False
+    )
+    total_price: Mapped[Decimal] = mapped_column(
+        Numeric(
+            PriceConstants.BOARDSHOP_PRICE_NUMBER_OF_DIGITS,
+            PriceConstants.BOARDSHOP_PRICE_FRACTIONAL_PART,
+        ),
+        nullable=False,
+    )
     payment_method: Mapped[str] = mapped_column(String(64), nullable=True)  # Вынести в константы
     delivery_address: Mapped[str] = mapped_column(String(256), nullable=True)
 

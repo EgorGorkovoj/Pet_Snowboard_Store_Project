@@ -35,6 +35,19 @@ class Cart(BoardShopBase):
         'CartItem', back_populates='cart', cascade='all, delete-orphan', lazy='selectin'
     )
 
+    @property
+    def total_price(self) -> Decimal:
+        """
+        Вычисляет общую стоимость всех товаров в корзине.
+        Возвращает сумму произведений цены и количества каждого элемента корзины.
+        Использует зафиксированную цену из CartItem, чтобы избежать рассинхронизации
+        при изменении цен в товаре после добавления в корзину.
+
+        Возвращаемое значение:
+            Decimal: Общая сумма корзины с учётом количества каждого товара.
+        """
+        return sum((item.price * item.quantity for item in self.cart_items), Decimal('0'))
+
 
 class CartItem(BoardShopBase):
     """
