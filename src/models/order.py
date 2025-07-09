@@ -1,19 +1,18 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING, List, Optional
+from uuid import UUID
 
-from sqlalchemy import Enum, ForeignKey, Numeric, SmallInteger, String
+from sqlalchemy import Enum, ForeignKey, Numeric, SmallInteger
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.constants import DefaultValueConstants, PriceConstants
 from src.models.base import BoardShopBase
 
 if TYPE_CHECKING:
-    from src.models.enum import OrderStatus
+    from src.models.enum import OrderStatus, PaymentMethod
     from src.models.product import ProductOption
-    from src.models.user import User
+    from src.models.user import User, UserAddress
 
-# TODO Вынести все в константы, проверить докстринги
-# TODO Продумать модель скидок, занести в ERD!
 # TODO Продумать как связать поле с адресом пользователя, логика автозаполнения!
 
 
@@ -38,7 +37,7 @@ class Order(BoardShopBase):
         items — список OrderItem.
     """
 
-    user_id: Mapped[int] = mapped_column(
+    user_id: Mapped[UUID] = mapped_column(
         ForeignKey('user.uuid', ondelete='SET NULL'), nullable=True
     )
     status: Mapped['OrderStatus'] = mapped_column(
@@ -51,13 +50,18 @@ class Order(BoardShopBase):
         ),
         nullable=False,
     )
-    payment_method: Mapped[str] = mapped_column(String(64), nullable=True)  # Вынести в константы
-    delivery_address: Mapped[str] = mapped_column(String(256), nullable=True)
+    payment_method: Mapped['PaymentMethod'] = mapped_column(
+        Enum(PaymentMethod, name='orderstatus'), nullable=True
+    )
+    delivery_address_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey('useraddress.id', ondelete='SET NULL'), nullable=True
+    )
 
     user: Mapped[Optional['User']] = relationship('User', back_populates='orders', lazy='selectin')
     items: Mapped[List['OrderItem']] = relationship(
         'OrderItem', back_populates='order', cascade='all, delete-orphan', lazy='selectin'
     )
+    delivery_address: Mapped[Optional['UserAddress']] = relationship('UserAddress', lazy='joined')
 
 
 class OrderItem(BoardShopBase):

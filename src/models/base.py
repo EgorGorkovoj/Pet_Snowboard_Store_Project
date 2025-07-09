@@ -4,7 +4,13 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr
 from src.core.database.annotations import created_at, int_pk, updated_at
 
 
-class BoardShopBase(AsyncAttrs, DeclarativeBase):
+class Base(DeclarativeBase):
+    "Базовая модель проекта"
+
+    pass
+
+
+class BoardShopBase(AsyncAttrs, Base):
     """
     Базовая модель проекта. Абстрактная модель.
 

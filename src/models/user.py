@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, List
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-# from src.core.constants import LengthConstants
+from src.core.constants import LengthConstants
 from src.models.base import BoardShopBase
 
 if TYPE_CHECKING:
@@ -41,6 +41,8 @@ class UserAddress(BoardShopBase):
         ForeignKey('user.id', ondelete='CASCADE'),
         nullable=False,
     )
-    address: Mapped[str] = mapped_column(String(256), nullable=False)
+    address: Mapped[str] = mapped_column(
+        String(LengthConstants.DELIVERY_ADDRESS_LENGTH), nullable=False
+    )
 
     user: Mapped['User'] = relationship('User', back_populates='addresses')

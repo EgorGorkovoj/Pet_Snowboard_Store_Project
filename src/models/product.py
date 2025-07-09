@@ -11,6 +11,7 @@ from src.models.base import BoardShopBase
 if TYPE_CHECKING:
     from src.models.attribute import CategoryAttribute, ProductOptionAttribute
     from src.models.cart import CartItem
+    from src.models.discount import Discount
     from src.models.order import OrderItem
 
 
@@ -27,7 +28,9 @@ class Category(BoardShopBase):
     Связи (атрибут - Модель):
         parent_category - Category;
         categories - Category;
-        products - Product.
+        products - Product;
+        category_attributes - CategoryAttribute;
+        discounts - Discount.
     """
 
     title: Mapped[str] = mapped_column(
@@ -46,6 +49,9 @@ class Category(BoardShopBase):
     category_attributes: Mapped[List['CategoryAttribute']] = relationship(
         'CategoryAttribute', back_populates='category', lazy='selectin'
     )
+    discounts: Mapped[list['Discount']] = relationship(
+        secondary='discount_category', back_populates='categories'
+    )
 
 
 class Brand(BoardShopBase):
@@ -57,9 +63,8 @@ class Brand(BoardShopBase):
         name: Название брэнда.
 
     Связи (атрибут - Модель):
-        parent_category - Category;
-        categories - Category;
         products - Product.
+        discounts - Discount.
     """
 
     name: Mapped[str] = mapped_column(
@@ -67,6 +72,10 @@ class Brand(BoardShopBase):
     )
 
     products: Mapped[List['Product']] = relationship(back_populates='brand')
+
+    discounts: Mapped[list['Discount']] = relationship(
+        secondary='discount_brand', back_populates='brands'
+    )
 
 
 class Product(BoardShopBase):
@@ -87,9 +96,10 @@ class Product(BoardShopBase):
         image_url: Ссылка на изображение товара.
 
     Связи (атрибут - Модель):
-        categorys - Category;
-        brands - Brand;
-        product_options - ProductOption.
+        category - Category;
+        brand - Brand;
+        product_options - ProductOption;
+        discounts - Discount.
     """
 
     title: Mapped[str] = mapped_column(String(LengthConstants.TITLE_LENGTH), nullable=False)
@@ -114,6 +124,9 @@ class Product(BoardShopBase):
     brand: Mapped['Brand'] = relationship('Brand', back_populates='products', lazy='selectin')
     product_options: Mapped[List['ProductOption']] = relationship(
         'ProductOption', back_populates='product', cascade='all, delete-orphan'
+    )
+    discounts: Mapped[list['Discount']] = relationship(
+        secondary='discount_product', back_populates='products'
     )
 
     def __repr__(self) -> str:
@@ -141,7 +154,7 @@ class ProductOption(BoardShopBase):
         available: Вычисляется автоматически (если amount > 0). Не сохраняется в БД.
 
     Связи (атрибут - Модель):
-        products - Product;
+        product - Product;
         attributes - ProductOptionAttribute;
         cart_items - CartItem;
         order_items - OrderItem

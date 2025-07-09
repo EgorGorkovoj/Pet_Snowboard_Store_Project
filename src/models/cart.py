@@ -1,5 +1,6 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING, List
+from uuid import UUID
 
 from sqlalchemy import ForeignKey, Numeric, SmallInteger
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -10,6 +11,8 @@ from src.models.base import BoardShopBase
 if TYPE_CHECKING:
     from src.models.product import ProductOption
     from src.models.user import User
+
+# TODO: Сделать метод, например calculate_cart_total_price, считающий цену с учетом скидок!
 
 
 class Cart(BoardShopBase):
@@ -28,25 +31,25 @@ class Cart(BoardShopBase):
         cart_items — CartItem (список товаров в корзине).
     """
 
-    user_id: Mapped[int] = mapped_column(ForeignKey('user.uuid', ondelete='CASCADE'), unique=True)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey('user.uuid', ondelete='CASCADE'), unique=True)
 
     user: Mapped['User'] = relationship('User', back_populates='cart', lazy='joined')
     cart_items: Mapped[List['CartItem']] = relationship(
         'CartItem', back_populates='cart', cascade='all, delete-orphan', lazy='selectin'
     )
 
-    @property
-    def total_price(self) -> Decimal:
-        """
-        Вычисляет общую стоимость всех товаров в корзине.
-        Возвращает сумму произведений цены и количества каждого элемента корзины.
-        Использует зафиксированную цену из CartItem, чтобы избежать рассинхронизации
-        при изменении цен в товаре после добавления в корзину.
+    # @property
+    # def total_price(self) -> Decimal:
+    #     """
+    #     Вычисляет общую стоимость всех товаров в корзине.
+    #     Возвращает сумму произведений цены и количества каждого элемента корзины.
+    #     Использует зафиксированную цену из CartItem, чтобы избежать рассинхронизации
+    #     при изменении цен в товаре после добавления в корзину.
 
-        Возвращаемое значение:
-            Decimal: Общая сумма корзины с учётом количества каждого товара.
-        """
-        return sum((item.price * item.quantity for item in self.cart_items), Decimal('0'))
+    #     Возвращаемое значение:
+    #         Decimal: Общая сумма корзины с учётом количества каждого товара.
+    #     """
+    #     return sum((item.price * item.quantity for item in self.cart_items), Decimal('0'))
 
 
 class CartItem(BoardShopBase):

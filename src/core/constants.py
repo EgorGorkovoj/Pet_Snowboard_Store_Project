@@ -19,6 +19,7 @@ class LengthConstants:
     - BRAND_LENGTH (int): Максимальная длина названия бренда товара.
     - ARTICLE_LENGTH (int): Максимальная длина артикула.
     - ATTRIBUTE_LENGTH (int): Максимальная длина названия и значения характеристики товара.
+    - DELIVERY_ADDRESS_LENGTH (int): Максимальная длина адреса доставки.
     """
 
     TITLE_LENGTH: int = 100
@@ -28,6 +29,7 @@ class LengthConstants:
     BRAND_LENGTH: int = 100
     ARTICLE_LENGTH: int = 64
     ATTRIBUTE_LENGTH: int = 50
+    DELIVERY_ADDRESS_LENGTH = 256
 
 
 class DefaultValueConstants:
@@ -54,6 +56,19 @@ class PriceConstants:
     BOARDSHOP_PRICE_FRACTIONAL_PART: int = 2
 
 
+class DiscountPriceConstants:
+    """
+    Базовый класс констант для cкидок на товар.
+
+    Атрибуты:
+    - DISCOUNT_PRICE_NUMBER_OF_DIGITS (int): целая часть скидк.
+    - DISCOUNT_PRICE_FRACTIONAL_PART (int): сколько знаков после запятой у cкидки.
+    """
+
+    DISCOUNT_PRICE_NUMBER_OF_DIGITS: int = 5
+    DISCOUNT_PRICE_FRACTIONAL_PART: int = 2
+
+
 class LoggingBaseConstants:
     """
     Базовый класс констант для хранения параметров логирования приложения.
@@ -64,6 +79,6 @@ class LoggingBaseConstants:
     - LOG_ROTATION (str): Периодичность ротации логов (например, '1 day').
     """
 
-    LOG_FILE: str = 'logs/tabit.log'
+    LOG_FILE: str = 'logs/boardshop.log'
     LOG_RETENTION: str = '7 days'
     LOG_ROTATION: str = '1 day'
