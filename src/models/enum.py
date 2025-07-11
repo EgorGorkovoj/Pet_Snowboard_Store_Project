@@ -25,3 +25,18 @@ class PaymentMethod(StrEnum):
     SBP = 'По СБП'
     CASH_ON_DELIVERY = 'Наличными при получении'
     CARD_ON_DELIVERY = 'Картой при получении'
+
+
+class MediaTypeEnum(StrEnum):
+    """Варианты значения поля тип изображения для модели Media."""
+
+    IMAGE = 'Изображение'
+    VIDEO = 'Видео'
+    OTHER = 'Другое'
+
+
+class NotificationChannel(StrEnum):
+    """Варианты значения поля канал для модели Media."""
+
+    EMAIL = 'Email'
+    TELEGRAM = 'Telegram'

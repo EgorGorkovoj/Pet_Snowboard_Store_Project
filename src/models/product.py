@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from src.models.attribute import CategoryAttribute, ProductOptionAttribute
     from src.models.cart import CartItem
     from src.models.discount import Discount
+    from src.models.media import Media
     from src.models.order import OrderItem
 
 
@@ -21,7 +22,7 @@ class Category(BoardShopBase):
 
     Поля:
         id: Идентификационный номер.
-        title: Название товара.
+        title: Название категории.
         slug: Короткая строка для пути к эндпоинту.
         subcategory: Подкатегория товаров (внешний ключ к родительской категории).
 
@@ -53,6 +54,9 @@ class Category(BoardShopBase):
         secondary='discount_category', back_populates='categories'
     )
 
+    def __repr__(self) -> str:
+        return f'<Category(id={self.id}, name="{self.title}")>'
+
 
 class Brand(BoardShopBase):
     """
@@ -77,10 +81,13 @@ class Brand(BoardShopBase):
         secondary='discount_brand', back_populates='brands'
     )
 
+    def __repr__(self) -> str:
+        return f'<Brand(id={self.id}, name="{self.name}")>'
+
 
 class Product(BoardShopBase):
     """
-    Модель всех товаров унаследованная от базового класса 'BoardShopBase'.
+    Модель товара магазина.
 
     Назначение:
         Хранит сведения о всех товарах магазина и их общих характеристиках.
@@ -91,15 +98,15 @@ class Product(BoardShopBase):
         description: Описание товара.
         category_id: Категория товара (внешний ключ к таблице категории).
         brand_id: Торговая марка товара (брэнд).
-        model: Модель товара (например: Hardwork 2.0).
+        model: Модель товара (например: Magnum 2.0).
         season: К какому сезону относится товар (например: 2023).
-        image_url: Ссылка на изображение товара.
 
     Связи (атрибут - Модель):
         category - Category;
         brand - Brand;
         product_options - ProductOption;
-        discounts - Discount.
+        discounts - Discount;
+        media - Media.
     """
 
     title: Mapped[str] = mapped_column(String(LengthConstants.TITLE_LENGTH), nullable=False)
@@ -114,13 +121,10 @@ class Product(BoardShopBase):
         String(LengthConstants.MODEL_LENGTH), nullable=True
     )
     season: Mapped[int] = mapped_column(SmallInteger, nullable=False)
-    image_url: Mapped[Optional[str]] = mapped_column(
-        String(LengthConstants.FILE_LINK_MAX_LENGTH), nullable=True
-    )
-
     category: Mapped['Category'] = relationship(
         'Category', back_populates='products', lazy='selectin'
     )
+
     brand: Mapped['Brand'] = relationship('Brand', back_populates='products', lazy='selectin')
     product_options: Mapped[List['ProductOption']] = relationship(
         'ProductOption', back_populates='product', cascade='all, delete-orphan'
@@ -128,9 +132,12 @@ class Product(BoardShopBase):
     discounts: Mapped[list['Discount']] = relationship(
         secondary='discount_product', back_populates='products'
     )
+    media: Mapped[List['Media']] = relationship(
+        'Media', back_populates='product', cascade='all, delete-orphan', lazy='selectin'
+    )
 
     def __repr__(self) -> str:
-        return self.title
+        return f'<Product(id={self.id}, title="{self.title}")>'
 
 
 class ProductOption(BoardShopBase):
@@ -199,3 +206,9 @@ class ProductOption(BoardShopBase):
     @available.expression
     def available(cls) -> bool:
         return cls.amount > 0
+
+    def __repr__(self) -> str:
+        return (
+            f'<ProductOption(id={self.id}, product_id={self.product_id}, '
+            f'article="{self.article}", amount={self.amount}, price={self.price})>'
+        )

@@ -7,9 +7,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.constants import DiscountPriceConstants, LengthConstants
 from src.models.base import Base, BoardShopBase
+from src.models.enum import DiscountType  # noqa
 
 if TYPE_CHECKING:
-    from src.models.enum import DiscountType
+    from src.models.enum import DiscountType  # noqa
     from src.models.product import Brand, Category, Product
 
 
@@ -37,7 +38,9 @@ class Discount(BoardShopBase):
     """
 
     name: Mapped[str] = mapped_column(String(LengthConstants.TITLE_LENGTH), nullable=False)
-    discount_type: Mapped['DiscountType'] = mapped_column(Enum(DiscountType), nullable=False)
+    discount_type: Mapped['DiscountType'] = mapped_column(
+        Enum(DiscountType, name='discount_type_enum'), nullable=False
+    )
     value: Mapped[Decimal] = mapped_column(
         Numeric(
             DiscountPriceConstants.DISCOUNT_PRICE_NUMBER_OF_DIGITS,
@@ -63,6 +66,9 @@ class Discount(BoardShopBase):
     categories: Mapped[list['Category']] = relationship(
         secondary='discountcategory', back_populates='discounts'
     )
+
+    def __repr__(self) -> str:
+        return f'<Discount(id={self.id}, name="{self.name}", percentage={self.value})>'
 
 
 class DiscountProduct(Base):

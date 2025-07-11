@@ -37,6 +37,9 @@ class Attribute(BoardShopBase):
         'CategoryAttribute', back_populates='attribute', lazy='selectin'
     )
 
+    def __repr__(self) -> str:
+        return f'<Attribute(id={self.id}, name="{self.name}")>'
+
 
 class ProductOptionAttribute(BoardShopBase):
     """
@@ -70,6 +73,13 @@ class ProductOptionAttribute(BoardShopBase):
     attribute: Mapped['Attribute'] = relationship(
         'Attribute', back_populates='product_option_attr', lazy='selectin'
     )
+
+    def __repr__(self) -> str:
+        return (
+            f'<ProductOptionAttribute(id={self.id}, '
+            f'variant_id={self.variant_id}, attribute_id={self.attribute_id}, '
+            f'value="{self.value}")>'
+        )
 
 
 class CategoryAttribute(BoardShopBase):

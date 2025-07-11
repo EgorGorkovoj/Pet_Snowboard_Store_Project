@@ -7,9 +7,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.constants import DefaultValueConstants, PriceConstants
 from src.models.base import BoardShopBase
+from src.models.enum import OrderStatus, PaymentMethod  # noqa
 
 if TYPE_CHECKING:
-    from src.models.enum import OrderStatus, PaymentMethod
+    from src.models.enum import OrderStatus, PaymentMethod  # noqa
     from src.models.product import ProductOption
     from src.models.user import User, UserAddress
 
@@ -38,7 +39,7 @@ class Order(BoardShopBase):
     """
 
     user_id: Mapped[UUID] = mapped_column(
-        ForeignKey('user.uuid', ondelete='SET NULL'), nullable=True
+        ForeignKey('user.id', ondelete='SET NULL'), nullable=True
     )
     status: Mapped['OrderStatus'] = mapped_column(
         Enum(OrderStatus, name='orderstatus'), default=OrderStatus.PROCESSING, nullable=False
@@ -62,6 +63,12 @@ class Order(BoardShopBase):
         'OrderItem', back_populates='order', cascade='all, delete-orphan', lazy='selectin'
     )
     delivery_address: Mapped[Optional['UserAddress']] = relationship('UserAddress', lazy='joined')
+
+    def __repr__(self) -> str:
+        return (
+            f'<Order(id={self.id}, user_id={self.user_id}, '
+            f'status={self.status.name}, total_price={self.total_price})>'
+        )
 
 
 class OrderItem(BoardShopBase):
@@ -105,3 +112,10 @@ class OrderItem(BoardShopBase):
     product_option: Mapped[Optional['ProductOption']] = relationship(
         'ProductOption', back_populates='order_items', lazy='selectin'
     )
+
+    def __repr__(self) -> str:
+        return (
+            f'<OrderItem(id={self.id}, order_id={self.order_id}, '
+            f'product_option_id={self.product_option_id}, '
+            f'quantity={self.quantity}, price={self.price})>'
+        )

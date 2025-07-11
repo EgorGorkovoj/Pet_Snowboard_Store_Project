@@ -31,25 +31,15 @@ class Cart(BoardShopBase):
         cart_items — CartItem (список товаров в корзине).
     """
 
-    user_id: Mapped[UUID] = mapped_column(ForeignKey('user.uuid', ondelete='CASCADE'), unique=True)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey('user.id', ondelete='CASCADE'), unique=True)
 
     user: Mapped['User'] = relationship('User', back_populates='cart', lazy='joined')
     cart_items: Mapped[List['CartItem']] = relationship(
         'CartItem', back_populates='cart', cascade='all, delete-orphan', lazy='selectin'
     )
 
-    # @property
-    # def total_price(self) -> Decimal:
-    #     """
-    #     Вычисляет общую стоимость всех товаров в корзине.
-    #     Возвращает сумму произведений цены и количества каждого элемента корзины.
-    #     Использует зафиксированную цену из CartItem, чтобы избежать рассинхронизации
-    #     при изменении цен в товаре после добавления в корзину.
-
-    #     Возвращаемое значение:
-    #         Decimal: Общая сумма корзины с учётом количества каждого товара.
-    #     """
-    #     return sum((item.price * item.quantity for item in self.cart_items), Decimal('0'))
+    def __repr__(self) -> str:
+        return f'<Cart(id={self.id}, user_id={self.user_id})>'
 
 
 class CartItem(BoardShopBase):
@@ -91,3 +81,10 @@ class CartItem(BoardShopBase):
     product_option: Mapped['ProductOption'] = relationship(
         'ProductOption', back_populates='cart_items', lazy='selectin'
     )
+
+    def __repr__(self) -> str:
+        return (
+            f'<CartItem(id={self.id}, cart_id={self.cart_id}, '
+            f'product_option_id={self.product_option_id}, '
+            f'quantity={self.quantity}, price={self.price})>'
+        )

@@ -15,21 +15,25 @@ class LengthConstants:
     - TITLE_LENGTH (int): Максимальная длина названия товара.
     - MODEL_LENGTH (int): Максимальная длина модели (разновидность внутри бренда) товара.
     - FILE_LINK_MAX_LENGTH (int): Максимальная длина ссылки на изображение товара.
+    - MEDIA_TYPE_CONSTANTS (int): Максимальная длина типа медифайла.
     - SLUG (int): Максимальная длина slug товара.
     - BRAND_LENGTH (int): Максимальная длина названия бренда товара.
     - ARTICLE_LENGTH (int): Максимальная длина артикула.
     - ATTRIBUTE_LENGTH (int): Максимальная длина названия и значения характеристики товара.
     - DELIVERY_ADDRESS_LENGTH (int): Максимальная длина адреса доставки.
+    - NEWSLETTER_MESSAGE_LENGTH (int): Максимальная длина текста сообщения рассылки.
     """
 
     TITLE_LENGTH: int = 100
     MODEL_LENGTH: int = 50
     FILE_LINK_MAX_LENGTH: int = 2048
+    MEDIA_TYPE_CONSTANTS: int = 50
     SLUG: int = 110
     BRAND_LENGTH: int = 100
     ARTICLE_LENGTH: int = 64
     ATTRIBUTE_LENGTH: int = 50
-    DELIVERY_ADDRESS_LENGTH = 256
+    DELIVERY_ADDRESS_LENGTH: int = 256
+    NEWSLETTER_MESSAGE_LENGTH: int = 2000
 
 
 class DefaultValueConstants:
