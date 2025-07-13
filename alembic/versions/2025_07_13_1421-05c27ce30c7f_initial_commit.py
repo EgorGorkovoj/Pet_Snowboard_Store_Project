@@ -1,8 +1,8 @@
 """Initial commit
 
-Revision ID: 4490f2c9f55c
+Revision ID: 05c27ce30c7f
 Revises:
-Create Date: 2025-07-10 15:25:23.854834
+Create Date: 2025-07-13 14:21:03.418732
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '4490f2c9f55c'
+revision: str = '05c27ce30c7f'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -84,6 +84,19 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['discount_id'], ['discount.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('discount_id', 'category_id')
     )
+    op.create_table('newsletter',
+    sa.Column('user_id', fastapi_users_db_sqlalchemy.generics.GUID(), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=False),
+    sa.Column('cancel_newslatter', sa.Boolean(), nullable=False),
+    sa.Column('min_orders', sa.SmallInteger(), nullable=False),
+    sa.Column('media_url', sa.String(length=2048), nullable=True),
+    sa.Column('message_text', sa.String(length=2000), nullable=False),
+    sa.Column('channel', sa.Enum('EMAIL', 'TELEGRAM', name='notificationchannel'), nullable=False),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('id')
+    )
     op.create_table('product',
     sa.Column('title', sa.String(length=100), nullable=False),
     sa.Column('description', sa.Text(), nullable=True),
@@ -91,7 +104,6 @@ def upgrade() -> None:
     sa.Column('brand_id', sa.Integer(), nullable=False),
     sa.Column('model', sa.String(length=50), nullable=True),
     sa.Column('season', sa.SmallInteger(), nullable=False),
-    sa.Column('image_url', sa.String(length=2048), nullable=True),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.ForeignKeyConstraint(['brand_id'], ['brand.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['category_id'], ['category.id'], ondelete='SET NULL'),
@@ -112,6 +124,16 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['discount_id'], ['discount.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['product_id'], ['product.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('discount_id', 'product_id')
+    )
+    op.create_table('media',
+    sa.Column('file_url', sa.String(length=2048), nullable=False),
+    sa.Column('media_type', sa.Enum('IMAGE', 'VIDEO', 'OTHER', name='media_type_enum'), nullable=False),
+    sa.Column('is_primary', sa.Boolean(), nullable=False),
+    sa.Column('product_id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.ForeignKeyConstraint(['product_id'], ['product.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('id')
     )
     op.create_table('order',
     sa.Column('user_id', fastapi_users_db_sqlalchemy.generics.GUID(), nullable=True),
@@ -169,9 +191,11 @@ def downgrade() -> None:
     op.drop_table('cartitem')
     op.drop_table('productoption')
     op.drop_table('order')
+    op.drop_table('media')
     op.drop_table('discount_product')
     op.drop_table('useraddress')
     op.drop_table('product')
+    op.drop_table('newsletter')
     op.drop_table('discount_category')
     op.drop_table('discount_brand')
     op.drop_table('cart')

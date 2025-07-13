@@ -86,3 +86,22 @@ class LoggingBaseConstants:
     LOG_FILE: str = 'logs/boardshop.log'
     LOG_RETENTION: str = '7 days'
     LOG_ROTATION: str = '1 day'
+
+
+class TextErrorConstants:
+    """
+    Базовый класс констант стандартных текстов ошибок.
+
+    Атрибуты:
+    - NOT_FOUND_BY_ID (str): Шаблон сообщения об отсутствии объекта по переданному ID.
+    - NOT_FOUND_BY_SLUG (str): Шаблон сообщения об отсутствии объекта по переданному slug.
+    - CREATE_SERVER_LOG (str): Текст лога ошибки при создании объекта.
+    - UPDATE_SERVER_LOG (str): Текст лога ошибки при обновлении объекта.
+    - DELETE_SERVER_LOG (str): Текст лога ошибки ошибки при удалении.
+    """
+
+    NOT_FOUND_BY_ID: str = 'Не найден объект {obj} по данному id: {id}'
+    NOT_FOUND_BY_SLUG: str = 'Не найден объект {obj} по данному slug: {slug}'
+    CREATE_SERVER_LOG: str = 'Ошибка при создании'
+    UPDATE_SERVER_LOG: str = 'Ошибка при обновлении'
+    DELETE_SERVER_LOG: str = 'Ошибка при удалении'
