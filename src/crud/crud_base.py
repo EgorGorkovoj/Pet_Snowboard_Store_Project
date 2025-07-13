@@ -70,7 +70,6 @@ class CRUDBase(Generic[ModelType, CreateShemaType, UpdateShemaType]):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=message)
         return result
 
-    # TODO: Исправить докстринг!!!
     async def get_by_slug(
         self, session: AsyncSession, slug: str, raise_404: bool = False, message: str | None = None
     ) -> Optional[ModelType]:
@@ -94,7 +93,7 @@ class CRUDBase(Generic[ModelType, CreateShemaType, UpdateShemaType]):
             HTTPException: Если объект не найден и raise_404=True.
 
         Примечание:
-            Атрибут `slug` должен существовать в модели.
+            Атрибут 'slug' должен существовать в модели.
             Если модель его не содержит — может возникнуть ошибка.
         """
         result = await session.execute(
