@@ -1,5 +1,7 @@
 from fastapi import APIRouter
 
-main_router = APIRouter()  # Для подключения всех роутеров
+from src.api.v1.endpoints import product_router
 
-# main_router.include_router()
+main_router = APIRouter()
+
+main_router.include_router(product_router, tags=['Товары и категории'])

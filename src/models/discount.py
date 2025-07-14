@@ -64,7 +64,7 @@ class Discount(BoardShopBase):
         secondary='discount_brand', back_populates='discounts'
     )
     categories: Mapped[list['Category']] = relationship(
-        secondary='discountcategory', back_populates='discounts'
+        secondary='discount_category', back_populates='discounts'
     )
 
     def __repr__(self) -> str:

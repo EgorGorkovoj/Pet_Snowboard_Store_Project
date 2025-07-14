@@ -34,11 +34,14 @@ class Category(BoardShopBase):
         discounts - Discount.
     """
 
+    id: Mapped[int] = mapped_column('id', primary_key=True)
     title: Mapped[str] = mapped_column(
         String(LengthConstants.TITLE_LENGTH), nullable=False, unique=True
     )
     slug: Mapped[str] = mapped_column(String(LengthConstants.SLUG), nullable=False, unique=True)
-    subcategory: Mapped[Optional[int]] = mapped_column(ForeignKey('category.id'), nullable=True)
+    parent_category_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey('category.id'), nullable=True
+    )
 
     parent_category: Mapped[Optional['Category']] = relationship(
         'Category', back_populates='categories', remote_side=[id]

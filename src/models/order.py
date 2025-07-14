@@ -52,7 +52,7 @@ class Order(BoardShopBase):
         nullable=False,
     )
     payment_method: Mapped['PaymentMethod'] = mapped_column(
-        Enum(PaymentMethod, name='orderstatus'), nullable=True
+        Enum(PaymentMethod, name='payment_method'), nullable=True
     )
     delivery_address_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey('useraddress.id', ondelete='SET NULL'), nullable=True

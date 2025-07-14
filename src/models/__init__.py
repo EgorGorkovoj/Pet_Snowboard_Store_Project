@@ -1,5 +1,5 @@
 # ruff: noqa
-
+from .attribute import Attribute, CategoryAttribute, ProductOptionAttribute
 from .base import Base, BoardShopBase
 from .product import Brand, Category, Product, ProductOption
 from .cart import Cart, CartItem
@@ -12,10 +12,13 @@ from .user import User, UserAddress
 __all__ = [
     'Base',
     'BoardShopBase',
+    'Attribute',
     'Brand',
     'Category',
+    'CategoryAttribute',
     'Product',
     'ProductOption',
+    'ProductOptionAttribute',
     'Cart',
     'CartItem',
     'Discount',

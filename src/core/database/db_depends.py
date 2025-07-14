@@ -5,11 +5,12 @@ from sqlalchemy.orm import sessionmaker
 
 from src.core.config.app import settings
 
-engine = create_async_engine(settings.database_url)
+# echo=True отображает запросы SQL, убрать в проде.
+engine = create_async_engine(settings.database_url, echo=True)
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, Any]:
     """Асинхронный генератор сессий."""
-    with AsyncSessionLocal as async_session:
+    async with AsyncSessionLocal() as async_session:
         yield async_session

@@ -11,6 +11,7 @@ from src.models.base import BoardShopBase
 if TYPE_CHECKING:
     from src.models.cart import Cart
     from src.models.newsletter import Newsletter
+    from src.models.order import Order
 
 
 class User(BoardShopBase, SQLAlchemyBaseUserTableUUID):  # type: ignore[misc]
@@ -19,6 +20,7 @@ class User(BoardShopBase, SQLAlchemyBaseUserTableUUID):  # type: ignore[misc]
     cart: Mapped['Cart'] = relationship(
         'Cart', back_populates='user', uselist=False, cascade='all, delete-orphan'
     )
+    orders: Mapped[List['Order']] = relationship('Order', back_populates='user')
     addresses: Mapped[List['UserAddress']] = relationship(
         'UserAddress',
         back_populates='user',
@@ -47,7 +49,6 @@ class UserAddress(BoardShopBase):
     address: Mapped[str] = mapped_column(
         String(LengthConstants.DELIVERY_ADDRESS_LENGTH), nullable=False
     )
-
     user: Mapped['User'] = relationship('User', back_populates='addresses')
 
     def __repr__(self) -> str:

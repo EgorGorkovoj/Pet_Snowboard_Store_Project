@@ -12,11 +12,11 @@ class LengthConstants:
     Базовый класс констант для ограничения длины символов полей.
 
     Атрибуты:
-    - TITLE_LENGTH (int): Максимальная длина названия товара.
+    - TITLE_LENGTH (int): Максимальная длина названия товара или категории.
     - MODEL_LENGTH (int): Максимальная длина модели (разновидность внутри бренда) товара.
     - FILE_LINK_MAX_LENGTH (int): Максимальная длина ссылки на изображение товара.
     - MEDIA_TYPE_CONSTANTS (int): Максимальная длина типа медифайла.
-    - SLUG (int): Максимальная длина slug товара.
+    - SLUG (int): Максимальная длина slug категории товара.
     - BRAND_LENGTH (int): Максимальная длина названия бренда товара.
     - ARTICLE_LENGTH (int): Максимальная длина артикула.
     - ATTRIBUTE_LENGTH (int): Максимальная длина названия и значения характеристики товара.
@@ -98,6 +98,8 @@ class TextErrorConstants:
     - CREATE_SERVER_LOG (str): Текст лога ошибки при создании объекта.
     - UPDATE_SERVER_LOG (str): Текст лога ошибки при обновлении объекта.
     - DELETE_SERVER_LOG (str): Текст лога ошибки ошибки при удалении.
+    - NOT_FOUND_CATEGORY_BY_ID_OR_SLUG (str): Текст ошибки при получении уже существующего объекта
+                                              со slug или категорией.
     """
 
     NOT_FOUND_BY_ID: str = 'Не найден объект {obj} по данному id: {id}'
@@ -105,3 +107,20 @@ class TextErrorConstants:
     CREATE_SERVER_LOG: str = 'Ошибка при создании'
     UPDATE_SERVER_LOG: str = 'Ошибка при обновлении'
     DELETE_SERVER_LOG: str = 'Ошибка при удалении'
+    FOUND_CATEGORY_BY_ID_OR_SLUG: str = 'Объект с такой категорией и slug уже существует.'
+
+
+class TitleConstants:
+    """
+    Класс констант для хранения заголовков полей.
+
+    Атрибуты:
+    - CATEGORY_NAME (str): Загаловок для категории.
+    - CATEGORY_SLUG (str): Загаловок для slug категории.
+    - PARENT_CATEGORY_NAME (str): Заголовок для родительской категории.
+
+    """
+
+    CATEGORY_NAME: str = 'Название категории'
+    CATEGORY_SLUG: str = 'Slug категории'
+    PARENT_CATEGORY_NAME: str = 'ID родительской категории'
