@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -40,3 +42,49 @@ async def create_categories(
     db_obj = await category_crud.create(session=session, obj_in=object_in)
 
     return db_obj
+
+
+@router.get('/categories', status_code=status.HTTP_200_OK, response_model=List[str])
+async def get_the_main_categories(
+    session: AsyncSession = Depends(get_async_session),
+) -> List[str]:
+    """
+    Получает список всех главных категорий.
+
+    Назначение:
+        Используется для отображения основных (корневых) категорий товаров.
+
+    Аргументы:
+        session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с БД.
+
+    Возвращает:
+        List[str]: Список названий всех главных категорий.
+
+    Исключения:
+        HTTPException: 404, если в базе не найдено ни одной главной категории.
+    """
+    db_objects = await category_crud.get_all_main_categories(session=session)
+    return db_objects
+
+
+@router.get(
+    '/categories/{parent_title}/subcategories',
+    status_code=status.HTTP_200_OK,
+    response_model=List[str],
+)
+async def get_subcategories_by_parent(
+    parent_title: str, session: AsyncSession = Depends(get_async_session)
+) -> List[str]:
+    """
+    Получает список подкатегорий по названию родительской категории.
+
+    Аргументы:
+        parent_title (str): Название родительской категории.
+        session (AsyncSession): Асинхронная сессия SQLAlchemy.
+
+    Возвращает:
+        List[str]: Названия подкатегорий.
+    """
+    return await category_crud.get_subcategories_by_parent_title(
+        session=session, parent_title=parent_title
+    )

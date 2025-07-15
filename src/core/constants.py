@@ -100,6 +100,7 @@ class TextErrorConstants:
     - DELETE_SERVER_LOG (str): Текст лога ошибки ошибки при удалении.
     - NOT_FOUND_CATEGORY_BY_ID_OR_SLUG (str): Текст ошибки при получении уже существующего объекта
                                               со slug или категорией.
+    - MAIN_CATEGORY_NOT_FOUND (str): Текст ошибки при отсутствии основых категорий.
     """
 
     NOT_FOUND_BY_ID: str = 'Не найден объект {obj} по данному id: {id}'
@@ -108,6 +109,8 @@ class TextErrorConstants:
     UPDATE_SERVER_LOG: str = 'Ошибка при обновлении'
     DELETE_SERVER_LOG: str = 'Ошибка при удалении'
     FOUND_CATEGORY_BY_ID_OR_SLUG: str = 'Объект с такой категорией и slug уже существует.'
+    MAIN_CATEGORY_NOT_FOUND: str = 'Главные категории не найдены.'
+    PARENT_CATEGORY_NOT_FOUND: str = 'Родительская категория "{parent_title}" не найдена.'
 
 
 class TitleConstants:
