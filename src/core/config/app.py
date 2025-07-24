@@ -1,5 +1,9 @@
+from pathlib import Path
+
 from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
+
+from src.core.constants import DirectoryBaseConstants, MiscBaseConstants
 
 
 class Settings(BaseSettings):
@@ -24,6 +28,9 @@ class Settings(BaseSettings):
     db_api: str
     db_host: str
     log_level: str
+
+    media_folder: Path = MiscBaseConstants.BASE_DIR.joinpath(DirectoryBaseConstants.MEDIA)
+    media_url: str = '/media'
 
     @property
     def database_url(self):

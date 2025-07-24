@@ -1,13 +1,16 @@
 from typing import List, Optional
 
 from fastapi import HTTPException, status
-from sqlalchemy import or_, select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.core.config.logging import logger
 from src.core.constants import TextErrorConstants
 from src.crud.crud_base import CRUDBase
-from src.models.product import Category
+from src.models.attribute import CategoryAttribute
+from src.models.product import Category, Product, ProductOption
+from src.schemas.product import ProductCreateSchema, ProductOptionCreate
 
 
 class CategoryCRUD(CRUDBase):
@@ -106,5 +109,176 @@ class CategoryCRUD(CRUDBase):
 
         return [subcategory.title for subcategory in parent_сategories.categories]
 
+    async def attach_attribute_if_not_exists(
+        self, session: AsyncSession, category_id: int, attribute_id: int, auto_commit: bool = False
+    ) -> None:
+        """
+        Привязывает атрибут к категории, если такая связь ещё не существует.
+
+        Аргументы:
+            session (AsyncSession): Асинхронная сессия SQLAlchemy.
+            category_id (int): Идентификатор категории.
+            attribute_id (int): Идентификатор атрибута.
+            auto_commit (bool, optional): Автоматически выполнить коммит после добавления.
+                                          По умолчанию False.
+
+        Возвращает:
+            None
+
+        Исключения:
+            Любые исключения, возникающие при работе с базой данных,
+            будут залогированы и выброшены.
+        """
+
+        exists = await session.execute(
+            select(CategoryAttribute).where(
+                CategoryAttribute.category_id == category_id,
+                CategoryAttribute.attribute_id == attribute_id,
+            )
+        )
+        if not exists.scalars().first():
+            try:
+                session.add(CategoryAttribute(category_id=category_id, attribute_id=attribute_id))
+                if auto_commit:
+                    await session.commit()
+            except Exception as error:
+                await session.rollback()
+                logger.error(
+                    f'{TextErrorConstants.CREATE_SERVER_LOG} \
+                      {CategoryAttribute.__name__}: {error}'
+                )
+                raise error
+
+
+class ProductCRUD(CRUDBase):
+    """
+    CRUD-класс для управления основными объектами продуктов.
+
+    Назначение:
+        Позволяет получать и создавать записи товаров в базе данных.
+    """
+
+    async def get_product_by_name_and_season(
+        self, session: AsyncSession, title_product: str, season: int
+    ) -> Optional[Product]:
+        """
+        Получает продукт по его названию и сезону.
+
+        Параметры:
+            session (AsyncSession): Активная сессия базы данных.
+            title_product (str): Название продукта.
+            season (int): Сезон продукта.
+
+        Возвращает:
+            Optional[Product]: Найденный продукт или None, если не найден.
+        """
+        result = await session.execute(
+            select(Product).where(and_(Product.title == title_product, Product.season == season))
+        )
+        return result.scalars().first()
+
+    async def create_product(
+        self,
+        session: AsyncSession,
+        product_schema: ProductCreateSchema,
+        brand_id: int,
+        auto_commit: bool = True,
+    ) -> Product:
+        """
+        Создаёт новый продукт в базе данных на основе входной схемы.
+
+        Назначение:
+            Основной метод для создания товара, исключая связанные опции.
+
+        Параметры:
+            session (AsyncSession): Активная сессия базы данных.
+            product_schema (ProductCreateSchema): Схема с данными о продукте.
+            brand_id (int): Идентификатор бренда, связанного с товаром.
+            auto_commit (bool): Нужно ли сразу выполнить commit (по умолчанию True).
+
+        Возвращает:
+            Product: Созданный объект товара.
+        """
+
+        obj_data = product_schema.model_dump(exclude={'product_options', 'brand_name'})
+        obj_data['brand_id'] = brand_id
+        db_obj = self.model(**obj_data)
+        try:
+            session.add(db_obj)
+            if auto_commit:
+                await session.commit()
+                await session.refresh(db_obj)
+        except Exception as error:
+            await session.rollback()
+            logger.error(f'{TextErrorConstants.CREATE_SERVER_LOG} {self.model.__name__}: {error}')
+            raise error
+        return db_obj
+
+
+class ProductOptionCRUD(CRUDBase):
+    """
+    CRUD-класс для работы с вариантами продукта (например, по размерам, артикулам и т.п.).
+
+    Назначение:
+        Управляет созданием и получением вариантов товаров, связанных с основным продуктом.
+    """
+
+    async def get_product_option_by_article(
+        self, session: AsyncSession, article: str
+    ) -> Optional[ProductOption]:
+        """
+        Получает вариант продукта по артикулу.
+
+        Параметры:
+            session (AsyncSession): Активная сессия базы данных.
+            article (str): Артикул варианта продукта.
+
+        Возвращает:
+            Optional[ProductOption]: Найденный вариант или None.
+        """
+        result = await session.execute(
+            select(ProductOption).where(ProductOption.article == article)
+        )
+        return result.scalars().first()
+
+    async def create_product_option(
+        self,
+        session: AsyncSession,
+        product_id: int,
+        product_option_in_bd: ProductOptionCreate,
+        auto_commit: bool = True,
+    ) -> ProductOption:
+        """
+        Создаёт вариант продукта и связывает его с основным товаром.
+
+        Назначение:
+            Используется при создании товара с несколькими артикулами, размерами и т.п.
+
+        Параметры:
+            session (AsyncSession): Активная сессия базы данных.
+            product_id (int): ID продукта, к которому относится вариант.
+            product_option_in_bd (ProductOptionCreate): Схема с данными варианта.
+            auto_commit (bool): Нужно ли выполнять commit автоматически.
+
+        Возвращает:
+            ProductOption: Созданный вариант продукта.
+        """
+
+        obj_data = product_option_in_bd.model_dump(exclude={'additional_attributes'})
+        obj_data['product_id'] = product_id
+        db_obj = self.model(**obj_data)
+        try:
+            session.add(db_obj)
+            if auto_commit:
+                await session.commit()
+                await session.refresh(db_obj)
+        except Exception as error:
+            await session.rollback()
+            logger.error(f'{TextErrorConstants.CREATE_SERVER_LOG} {self.model.__name__}: {error}')
+            raise error
+        return db_obj
+
 
 category_crud = CategoryCRUD(Category)
+product_crud = ProductCRUD(Product)
+product_option_crud = ProductOptionCRUD(ProductOption)

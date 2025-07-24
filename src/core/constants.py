@@ -6,6 +6,34 @@
 константы по функциональному назначению.
 """
 
+from dataclasses import dataclass
+from pathlib import Path
+
+
+@dataclass(frozen=True)
+class MiscBaseConstants:
+    """
+    Базовый класс разных общесистемных констант.
+
+    Класс реализован, как неизменяемый (frozen=True).
+
+    Атрибуты:
+    - BASE_DIR (Path): Корневая директория проекта.
+    """
+
+    BASE_DIR: Path = Path(__file__).resolve().parents[2]
+
+
+class DirectoryBaseConstants:
+    """
+    Базовый класс констант путей к директориям.
+
+    Атрибуты:
+    - MEDIA (str): Название директории для медиафайлов.
+    """
+
+    MEDIA: str = 'media'
+
 
 class LengthConstants:
     """
@@ -22,6 +50,7 @@ class LengthConstants:
     - ATTRIBUTE_LENGTH (int): Максимальная длина названия и значения характеристики товара.
     - DELIVERY_ADDRESS_LENGTH (int): Максимальная длина адреса доставки.
     - NEWSLETTER_MESSAGE_LENGTH (int): Максимальная длина текста сообщения рассылки.
+    - DESCRIPTION_LENGTH (int): Максимальная длина текста описания товара.
     """
 
     TITLE_LENGTH: int = 100
@@ -34,6 +63,7 @@ class LengthConstants:
     ATTRIBUTE_LENGTH: int = 50
     DELIVERY_ADDRESS_LENGTH: int = 256
     NEWSLETTER_MESSAGE_LENGTH: int = 2000
+    DESCRIPTION_LENGTH: int = 2000
 
 
 class DefaultValueConstants:
@@ -98,9 +128,13 @@ class TextErrorConstants:
     - CREATE_SERVER_LOG (str): Текст лога ошибки при создании объекта.
     - UPDATE_SERVER_LOG (str): Текст лога ошибки при обновлении объекта.
     - DELETE_SERVER_LOG (str): Текст лога ошибки ошибки при удалении.
-    - NOT_FOUND_CATEGORY_BY_ID_OR_SLUG (str): Текст ошибки при получении уже существующего объекта
+    - FOUND_CATEGORY_BY_ID_OR_SLUG (str): Текст ошибки при получении уже существующего объекта
                                               со slug или категорией.
     - MAIN_CATEGORY_NOT_FOUND (str): Текст ошибки при отсутствии основых категорий.
+    - PARENT_CATEGORY_NOT_FOUND (str): Текст ошибки при отсутствии родительской категорий.
+    - FOUND_BRAND_BY_NAME (str): Текст ошибки, что такой брэнд уже сущетсвует.
+    - FOUND_ATTR_FOR_OPTION_PRODUCT (str): Текст ошибки, что такая характеристика
+                                           для варианта товара уже сущетсвует.
     """
 
     NOT_FOUND_BY_ID: str = 'Не найден объект {obj} по данному id: {id}'
@@ -111,6 +145,9 @@ class TextErrorConstants:
     FOUND_CATEGORY_BY_ID_OR_SLUG: str = 'Объект с такой категорией и slug уже существует.'
     MAIN_CATEGORY_NOT_FOUND: str = 'Главные категории не найдены.'
     PARENT_CATEGORY_NOT_FOUND: str = 'Родительская категория "{parent_title}" не найдена.'
+    FOUND_BRAND_BY_NAME: str = 'Брэнд "{brand_title}" уже существует.'
+    FOUND_ARTICLE: str = 'Артикул "{article}" уже существует.'
+    FOUND_ATTR_FOR_OPTION_PRODUCT: str = 'Для данного товара такая характеристика уже существуют'
 
 
 class TitleConstants:
@@ -121,9 +158,30 @@ class TitleConstants:
     - CATEGORY_NAME (str): Загаловок для категории.
     - CATEGORY_SLUG (str): Загаловок для slug категории.
     - PARENT_CATEGORY_NAME (str): Заголовок для родительской категории.
-
+    - PRODUCT_TITLE (str): Загаловок для товара.
+    - PRODUCT_DESCRIPTION (str): Загаловок для описания товара.
+    - PRODUCT_CATEGORY (str): Заголовок для Id категории к которой принадлежит товар.
+    - PRODUCT_BRAND (str): Загаловок для брэнда товара.
+    - PRODUCT_MODEL (str): Загаловок модели товара.
+    - PRODUCT_SEASON (str): Заголовок сезона товара.
+    - ATTRIBUTE_NAME (str): Заголовок для названия характеристики товара (используется в схеме).
+    - ATTRIBUTE_VALUE (str): Заголовок для значения характеристики товара (используется в схеме).
+    - ARTICLE_TITLE (str): Заголовок артикула товара (используется в схеме).
+    - AMOUNT_TITLE (str): Заголовок количества товара (используется в схеме).
+    - PRICE_TITLE (str): Заголовок цены товара (используется в схеме).
     """
 
     CATEGORY_NAME: str = 'Название категории'
     CATEGORY_SLUG: str = 'Slug категории'
     PARENT_CATEGORY_NAME: str = 'ID родительской категории'
+    PRODUCT_TITLE: str = 'Название товара'
+    PRODUCT_DESCRIPTION: str = 'Описание товара'
+    PRODUCT_CATEGORY: str = 'ID категории товара'
+    PRODUCT_BRAND: str = 'Брэнд товара'
+    PRODUCT_MODEL: str = 'Модель товара'
+    PRODUCT_SEASON: str = 'Сезон'
+    ATTRIBUTE_NAME: str = 'Название атрибута (характеристики) '
+    ATTRIBUTE_VALUE: str = 'Значение атрибута (характеристики)'
+    ARTICLE_TITLE: str = 'Артикул товара'
+    AMOUNT_TITLE: str = 'Количество товара'
+    PRICE_TITLE: str = 'Цена товара'

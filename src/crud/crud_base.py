@@ -43,7 +43,7 @@ class CRUDBase(Generic[ModelType, CreateShemaType, UpdateShemaType]):
         return result.scalars().first()
 
     async def get_or_404(
-        self, session: AsyncSession, obj_id: int | UUID, message: str | None
+        self, session: AsyncSession, obj_id: int | UUID, message: str | None = None
     ) -> ModelType:
         """
         Получает объект из БД по id или выбрасывает 404-ошибку.
