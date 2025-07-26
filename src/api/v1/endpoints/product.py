@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.v1.validators import (
     check_on_duplicate_attributes_for_one_option_product,
+    check_product_category_inclusion,
     validate_unique_article_product,
     validate_unique_category_title,
 )
@@ -203,3 +204,71 @@ async def create_product(
         options=optional_read_list,
     )
     return product_read
+
+
+@router.get(
+    '/categories/{category_slug}/{product_id}',
+    status_code=status.HTTP_200_OK,
+    response_model=ProductReadSchema,
+)
+async def get_product_by_category(
+    category_slug: str, product_id: int, session: AsyncSession = Depends(get_async_session)
+) -> ProductReadSchema:
+    """
+    Получить продукт, относящийся к определённой категории.
+
+    Проверяет, что продукт с указанным ID принадлежит категории с заданным slug.
+    Если категория или продукт не найдены, возвращает ошибку 404.
+    Загружает бренд, варианты продукта и их атрибуты.
+
+    Параметры:
+        category_slug (str): Слаг категории.
+        product_id (int): Идентификатор продукта.
+        session (AsyncSession): Асинхронная сессия базы данных.
+
+    Возвращает:
+        ProductReadSchema: Сериализованные данные продукта с вариантами и атрибутами.
+    """
+
+    category = await category_crud.get_by_slug(session=session, slug=category_slug, raise_404=True)
+    product = await product_crud.get_or_404(session=session, obj_id=product_id)
+    await check_product_category_inclusion(
+        product_category_id=product.category_id,
+        category_id=category.id,  # type: ignore
+    )
+
+    brand = await brand_crud.get_or_404(session=session, obj_id=product.brand_id)
+
+    options_in_db = await product_option_crud.get_product_options_with_attributes(
+        session=session, product_id=product.id
+    )
+
+    option_read_list = []
+    for option in options_in_db:
+        attributes_in_db = await attribute_option_crud.get_attributes_by_variant_id(
+            session=session, variant_id=option.id
+        )
+        print(attributes_in_db[0].attribute.name)
+        attr_read = [
+            AttributeReadSchema(name=attr.attribute.name, value=attr.value)
+            for attr in attributes_in_db
+        ]
+
+        option_read_list.append(
+            ProductOptionReadSchema(
+                article=option.article,
+                amount=option.amount,
+                price=option.price,
+                attributes=attr_read,
+            )
+        )
+
+    return ProductReadSchema(
+        id=product.id,
+        name=product.title,
+        description=product.description,
+        category_name=category.title,  # type: ignore
+        brand_name=brand.name,
+        season=product.season,
+        options=option_read_list,
+    )

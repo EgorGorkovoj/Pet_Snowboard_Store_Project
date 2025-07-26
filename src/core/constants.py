@@ -135,6 +135,8 @@ class TextErrorConstants:
     - FOUND_BRAND_BY_NAME (str): Текст ошибки, что такой брэнд уже сущетсвует.
     - FOUND_ATTR_FOR_OPTION_PRODUCT (str): Текст ошибки, что такая характеристика
                                            для варианта товара уже сущетсвует.
+    - PRODUCT_NOT_FOUND_IN_CATEGORY (str): Тест ошибки, что категория
+                                           не совпадает с категорией продукта.
     """
 
     NOT_FOUND_BY_ID: str = 'Не найден объект {obj} по данному id: {id}'
@@ -148,6 +150,7 @@ class TextErrorConstants:
     FOUND_BRAND_BY_NAME: str = 'Брэнд "{brand_title}" уже существует.'
     FOUND_ARTICLE: str = 'Артикул "{article}" уже существует.'
     FOUND_ATTR_FOR_OPTION_PRODUCT: str = 'Для данного товара такая характеристика уже существуют'
+    PRODUCT_NOT_FOUND_IN_CATEGORY: str = 'Продукт не найден в указанной категории'
 
 
 class TitleConstants:

@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 from src.core.config.logging import logger
 from src.core.constants import TextErrorConstants
 from src.crud.crud_base import CRUDBase
-from src.models.attribute import CategoryAttribute
+from src.models.attribute import CategoryAttribute, ProductOptionAttribute
 from src.models.product import Category, Product, ProductOption
 from src.schemas.product import ProductCreateSchema, ProductOptionCreate
 
@@ -240,6 +240,32 @@ class ProductOptionCRUD(CRUDBase):
             select(ProductOption).where(ProductOption.article == article)
         )
         return result.scalars().first()
+
+    async def get_product_options_with_attributes(
+        self, session: AsyncSession, product_id: int
+    ) -> List[ProductOption]:
+        """
+        Получает варианты товара с их характеристиками и названиями характеристик
+        (оптимизировано через selectinload).
+
+        Параметры:
+            session (AsyncSession): Активная сессия базы данных.
+            product_id (int): Идентификатор продукта.
+
+        Возвращает:
+            List[ProductOption]: Список вариантов продукта с атрибутами и их названиями.
+        """
+
+        result = await session.execute(
+            select(ProductOption)
+            .where(ProductOption.product_id == product_id)
+            .options(
+                selectinload(ProductOption.attributes).selectinload(
+                    ProductOptionAttribute.attribute
+                )
+            )
+        )
+        return result.scalars().all()  # type: ignore
 
     async def create_product_option(
         self,

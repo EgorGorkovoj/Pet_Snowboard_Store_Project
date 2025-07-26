@@ -99,14 +99,15 @@ class CRUDBase(Generic[ModelType, CreateShemaType, UpdateShemaType]):
         result = await session.execute(
             select(self.model).where(self.model.slug == slug)  # type: ignore
         )
+        obj = result.scalars().first()
 
-        if not result and raise_404:
+        if not obj and raise_404:
             if message is None:
                 message = TextErrorConstants.NOT_FOUND_BY_SLUG.format(
                     obj=self.model.__name__, slug=slug
                 )
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=message)
-        return result.scalars().first()
+        return obj
 
     async def create(
         self, session: AsyncSession, obj_in: CreateShemaType, auto_commit: bool = True

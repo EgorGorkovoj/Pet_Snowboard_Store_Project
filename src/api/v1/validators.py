@@ -110,3 +110,12 @@ async def check_on_duplicate_attributes_for_one_option_product(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=TextErrorConstants.FOUND_ATTR_FOR_OPTION_PRODUCT,
         )
+
+
+async def check_product_category_inclusion(product_category_id: int, category_id: int) -> None:
+    """Проверка что продукт принадлежит к категории"""
+    if product_category_id != category_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=TextErrorConstants.PRODUCT_NOT_FOUND_IN_CATEGORY,
+        )

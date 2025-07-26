@@ -1,7 +1,8 @@
-from typing import Optional
+from typing import List, Optional
 
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.core.config.logging import logger
 from src.core.constants import TextErrorConstants
@@ -93,6 +94,27 @@ class AttributeOptionProductCRUD(CRUDBase):
             )
         )
         return result.scalars().first()
+
+    async def get_attributes_by_variant_id(
+        self, session: AsyncSession, variant_id: int
+    ) -> List[ProductOptionAttribute]:
+        """
+        Получает все атрибуты и их значения, привязанные к конкретному варианту продукта.
+
+        Параметры:
+            session (AsyncSession): Сессия SQLAlchemy.
+            variant_id (int): Идентификатор варианта продукта.
+
+        Возвращает:
+            List[ProductOptionAttribute]: Список атрибутов и их значений, связанных с вариантом.
+        """
+
+        result = await session.execute(
+            select(ProductOptionAttribute)
+            .where(ProductOptionAttribute.variant_id == variant_id)
+            .options(selectinload(ProductOptionAttribute.attribute))
+        )
+        return result.scalars().all()  # type: ignore
 
     async def create_attr_and_value_for_option_product(
         self,
