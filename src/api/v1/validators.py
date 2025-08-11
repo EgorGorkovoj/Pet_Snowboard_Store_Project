@@ -112,8 +112,43 @@ async def check_on_duplicate_attributes_for_one_option_product(
         )
 
 
-async def check_product_category_inclusion(product_category_id: int, category_id: int) -> None:
-    """Проверка что продукт принадлежит к категории"""
+async def check_on_not_found_attributes_for_one_option_product(
+    session: AsyncSession, prod_option_id: int, attr_id: int
+) -> None:
+    """
+    Проверяет, привязан ли уже указанный атрибут к варианту товара.
+
+    Если у указанного варианта такого атрибута нет — выбрасывается ошибка 404.
+
+    Параметры:
+        session (AsyncSession): Сессия базы данных.
+        prod_option_id (int): ID варианта продукта.
+        attr_id (int): ID атрибута (характеристики).
+
+    Исключения:
+        HTTPException: Статус 404, если атрибут не найден.
+    """
+    result = await attribute_option_crud.get_attr_by_option_product(
+        session=session, prod_option_id=prod_option_id, attr_id=attr_id
+    )
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=TextErrorConstants.NOT_FOUND_ATTR_FOR_OPTION_PRODUCT,
+        )
+
+
+def check_product_category_inclusion(product_category_id: int, category_id: int) -> None:
+    """
+    Проверяет принадлежит ли продукт указанной категории.
+
+    Параметры:
+    - product_category_id (int): Идентификатор категории, к которой привязан продукт.
+    - category_id (int): Ожидаемый идентификатор категории.
+
+    Исключения:
+    - HTTPException 404: Если продукт не принадлежит указанной категории.
+    """
     if product_category_id != category_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

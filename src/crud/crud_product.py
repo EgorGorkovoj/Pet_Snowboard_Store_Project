@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException, status
 from sqlalchemy import and_, or_, select
@@ -177,6 +177,42 @@ class ProductCRUD(CRUDBase):
         )
         return result.scalars().first()
 
+    async def get_all_products_by_category(
+        self,
+        session: AsyncSession,
+        category_id: int,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10,
+        offset: int = 0,
+    ) -> List[Product]:
+        """
+        Получает список продуктов, принадлежащих указанной категории.
+
+        Параметры:
+            session (AsyncSession): Асинхронная сессия базы данных.
+            category_id (int): Идентификатор категории, по которой осуществляется фильтрация.
+            limit (int, по умолчанию 10): Количество возвращаемых записей (пагинация).
+            offset (int, по умолчанию 0): Смещение начала выборки (пагинация).
+
+        Возвращает:
+            List[Product]: Список объектов Product, соответствующих категории и пагинации.
+
+        Примечание:
+            Также загружается связанный объект бренда с помощью selectinload(Product.brand).
+        """
+
+        query = (
+            select(Product)
+            .where(Product.category_id == category_id)
+            .options(selectinload(Product.brand))
+        )
+        if filters:
+            query = self._apply_filters_by_attribute(query=query, filters=filters)
+            query = query.distinct()
+        query = self._apply_limit_offset(query=query, limit=limit, offset=offset)
+        result = await session.execute(query)
+        return result.scalars().all()  # type: ignore
+
     async def create_product(
         self,
         session: AsyncSession,
@@ -241,11 +277,11 @@ class ProductOptionCRUD(CRUDBase):
         )
         return result.scalars().first()
 
-    async def get_product_options_with_attributes(
+    async def get_products_options_with_attributes(
         self, session: AsyncSession, product_id: int
     ) -> List[ProductOption]:
         """
-        Получает варианты товара с их характеристиками и названиями характеристик
+        Получает все варианты товара с их характеристиками и названиями характеристик
         (оптимизировано через selectinload).
 
         Параметры:
@@ -260,12 +296,41 @@ class ProductOptionCRUD(CRUDBase):
             select(ProductOption)
             .where(ProductOption.product_id == product_id)
             .options(
+                selectinload(ProductOption.product),
                 selectinload(ProductOption.attributes).selectinload(
                     ProductOptionAttribute.attribute
-                )
+                ),
             )
         )
         return result.scalars().all()  # type: ignore
+
+    async def get_product_option_by_id(
+        self, session: AsyncSession, product_id: int, product_option_id: int
+    ) -> Optional[ProductOption]:
+        """
+        Получает один вариант товара.
+
+        Параметры:
+            session (AsyncSession): Активная сессия базы данных.
+            product_id (int): Идентификатор  продукта.
+            product_option_id (int): Идентификатор варианта продукта.
+
+        Возвращает:
+            ProductOption: Вариант продукта.
+        """
+
+        result = await session.execute(
+            select(ProductOption).where(
+                and_(ProductOption.product_id == product_id, ProductOption.id == product_option_id)
+            )
+        )
+        product_option = result.scalars().first()
+        if not product_option:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=TextErrorConstants.PRODUCT_OPTION_NOT_FOUND,
+            )
+        return product_option
 
     async def create_product_option(
         self,

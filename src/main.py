@@ -1,3 +1,4 @@
+import uvicorn
 from fastapi import FastAPI
 
 from src.api.v1.router import main_router
@@ -12,7 +13,7 @@ app_v1.middleware('http')(LoggingMidleware())
 
 def main():
     """Функция запустит управляющую функцию. Для доступа извне."""
-    pass
+    uvicorn.run(app_v1, host='127.0.0.1', port=8000)
 
 
 if __name__ == '__main__':

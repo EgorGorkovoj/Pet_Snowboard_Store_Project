@@ -1,49 +1,34 @@
 from decimal import Decimal
 from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from src.core.constants import LengthConstants, TitleConstants
 from src.schemas.attribute import AttributeReadSchema
 
 
-class CategoryCreateSchema(BaseModel):
+class ProductBaseReadSchema(BaseModel):
     """
-    Схема для создания новой категории.
+    Схема для отображения основного товара и его опций.
+
+    Назначение:
+        Используется для краткого отображения информации о товаре.
+        Например используется в отображение списка товаров.
 
     Поля:
-        title: Название категории (обязательное поле, ограничено по длине).
-        slug: Уникальный URL-идентификатор категории
-              (обязательное поле, используется для адресов).
-        parent_category_id: ID родительской категории, если есть.
-    """
-
-    title: str = Field(
-        ..., max_length=LengthConstants.TITLE_LENGTH, title=TitleConstants.CATEGORY_NAME
-    )
-    slug: str = Field(..., max_length=LengthConstants.SLUG, title=TitleConstants.CATEGORY_SLUG)
-    parent_category_id: int | None = Field(
-        default=None, title=TitleConstants.PARENT_CATEGORY_NAME, examples=[None]
-    )
-
-
-class CategoryReadSchema(BaseModel):
-    """
-    Схема для чтения (отображения) категории.
-
-    Поля:
-        id: Уникальный идентификатор категории.
-        title: Название категории.
-        slug: URL-идентификатор категории.
-        parent_category_id: Родитетельская категория.
+        id: Уникальный идентификатор товара.
+        name: Название товара.
+        description: Описание товара.
+        brand_name: Название бренда.
+        season: Сезон.
     """
 
     id: int
     title: str
-    slug: str
-    parent_category_id: Optional[int] = None
-
-    model_config = ConfigDict(from_attributes=True)
+    category_name: str
+    description: Optional[str] = None
+    brand_name: str
+    season: Optional[int] = None
 
 
 class ProductOptionAttributeCreate(BaseModel):
@@ -66,6 +51,8 @@ class ProductOptionAttributeCreate(BaseModel):
         ..., max_length=LengthConstants.ATTRIBUTE_LENGTH, title=TitleConstants.ATTRIBUTE_VALUE
     )
 
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+
 
 class ProductOptionCreate(BaseModel):
     """
@@ -85,8 +72,8 @@ class ProductOptionCreate(BaseModel):
     article: str = Field(
         ..., max_length=LengthConstants.ARTICLE_LENGTH, title=TitleConstants.ARTICLE_TITLE
     )
-    amount: int = Field(..., title=TitleConstants.AMOUNT_TITLE)
-    price: Decimal = Field(..., title=TitleConstants.PRICE_TITLE)
+    amount: int = Field(..., ge=0, title=TitleConstants.AMOUNT_TITLE)
+    price: Decimal = Field(..., ge=0, title=TitleConstants.PRICE_TITLE)
     additional_attributes: List[ProductOptionAttributeCreate]
 
     @model_validator(mode='after')
@@ -100,6 +87,8 @@ class ProductOptionCreate(BaseModel):
                 raise ValueError(f'Атрибут с названием "{attr.name}" указан несколько раз.')
             repeat.add(attr.name.lower())
         return self
+
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
 
 
 class ProductCreateSchema(BaseModel):
@@ -137,6 +126,120 @@ class ProductCreateSchema(BaseModel):
     season: int = Field(..., title=TitleConstants.PRODUCT_SEASON)
     product_options: List[ProductOptionCreate]
 
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+
+
+class ProductOptionAttributeUpdateSchema(BaseModel):
+    """
+    Схема обновления отдельного атрибута варианта товара.
+
+    Назначение:
+        Используется для изменения значения конкретной характеристики (атрибута)
+        варианта товара, например, цвета, размера, материала.
+
+    Поля:
+        name (Optional[str]): Имя атрибута (например, "Цвет").
+        value (Optional[str]): Значение атрибута (например, "Красный").
+    Ограничения:
+        - Лишние пробелы в начале и конце будут удалены (str_strip_whitespace=True).
+        - Нельзя передавать поля, которых нет в схеме (extra='forbid').
+    """
+
+    name: Optional[str] = Field(
+        None, max_length=LengthConstants.ATTRIBUTE_LENGTH, title=TitleConstants.ATTRIBUTE_NAME
+    )
+    value: Optional[str] = Field(
+        None, max_length=LengthConstants.ATTRIBUTE_LENGTH, title=TitleConstants.ATTRIBUTE_VALUE
+    )
+
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+
+
+class ProductOptionUpdateSchema(BaseModel):
+    """
+    Схема обновления варианта товара.
+
+    Назначение:
+        Применяется при частичном или полном обновлении информации о конкретном варианте товара
+        (артикул, цена, количество, набор характеристик).
+
+    Поля:
+        article (Optional[str]): Артикул варианта товара (уникальный код, заданный магазином).
+        amount (Optional[int]): Количество товара на складе. Должно быть ≥ 0.
+        price (Optional[Decimal]): Цена варианта товара. Должна быть ≥ 0.
+        attributes (Optional[List[ProductOptionAttributeUpdateSchema]]):
+            Список обновляемых атрибутов варианта товара.
+            Каждый элемент списка описывается схемой ProductOptionAttributeUpdateSchema.
+
+    Валидаторы:
+        check_unique_attribute_names:
+            Проверяет, что в списке attributes нет дубликатов по имени атрибута.
+
+    Ограничения:
+        - Лишние пробелы в строковых полях будут удалены (str_strip_whitespace=True).
+        - Нельзя передавать поля, которых нет в схеме (extra='forbid').
+    """
+
+    article: Optional[str] = Field(
+        None, max_length=LengthConstants.ARTICLE_LENGTH, title=TitleConstants.ARTICLE_TITLE
+    )
+    amount: Optional[int] = Field(None, ge=0, title=TitleConstants.AMOUNT_TITLE)
+    price: Optional[Decimal] = Field(None, ge=0, title=TitleConstants.PRICE_TITLE)
+    attributes: Optional[List[ProductOptionAttributeUpdateSchema]] = None
+
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+
+    @field_validator('attributes')
+    def check_unique_attribute_names(cls, attributes):
+        if attributes is None:
+            return attributes
+        names = [attr.name for attr in attributes]
+        if len(names) != len(set(names)):
+            raise ValueError('Атрибуты содержат дубликаты по имени')
+        return attributes
+
+
+class ProductUpdateSchema(BaseModel):
+    """
+    Схема обновления основного товара.
+
+    Назначение:
+        Используется при частичном или полном обновлении общей информации о товаре
+        (название, описание, категория, бренд, модель, сезон).
+        Не предназначена для изменения вариантов товара или их характеристик.
+
+    Поля:
+        title (Optional[str]): Название товара.
+        description (Optional[str]): Описание товара.
+        category_id (Optional[int]): Идентификатор категории, к которой относится товар.
+        brand_name (Optional[str]): Название бренда товара.
+        model (Optional[str]): Модель товара.
+        season (Optional[int]): Сезон использования (год).
+
+    Ограничения:
+        - Лишние пробелы в строковых полях будут удалены (str_strip_whitespace=True).
+        - Нельзя передавать поля, которых нет в схеме (extra='forbid').
+    """
+
+    title: Optional[str] = Field(
+        None, max_length=LengthConstants.TITLE_LENGTH, title=TitleConstants.PRODUCT_TITLE
+    )
+    description: Optional[str] = Field(
+        None,
+        max_length=LengthConstants.DESCRIPTION_LENGTH,
+        title=TitleConstants.PRODUCT_DESCRIPTION,
+    )
+    category_id: Optional[int] = Field(None, title=TitleConstants.PRODUCT_CATEGORY)
+    brand_name: Optional[str] = Field(
+        None, max_length=LengthConstants.BRAND_LENGTH, title=TitleConstants.PRODUCT_BRAND
+    )
+    model: Optional[str] = Field(
+        None, max_length=LengthConstants.MODEL_LENGTH, title=TitleConstants.PRODUCT_MODEL
+    )
+    season: Optional[int] = Field(None, title=TitleConstants.PRODUCT_SEASON)
+
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+
 
 class ProductOptionReadSchema(BaseModel):
     """
@@ -149,33 +252,42 @@ class ProductOptionReadSchema(BaseModel):
         attributes: Список характеристик варианта товара.
     """
 
+    id: int
     article: str
     amount: int
     price: Decimal
     attributes: List[AttributeReadSchema]
 
 
-class ProductReadSchema(BaseModel):
+class ProductReadSchema(ProductBaseReadSchema):
     """
-    Схема для отображения основного товара и его опций.
+    Схема для подробного отображения основного товара и его вариантами.
 
     Назначение:
         Используется как ответная модель после создания товара или при запросе информации о нем.
 
     Поля:
-        id: Уникальный идентификатор товара.
-        name: Название товара.
-        description: Описание товара.
         category_name: Название категории, к которой относится товар.
-        brand_name: Название бренда.
-        season: Сезон.
         options: Список всех доступных вариантов (опций) товара.
+
+    Примечание:
+        Поля id, name, description, brand_name, season наследуются от ProductBaseReadSchems.
     """
 
-    id: int
-    name: str
-    description: Optional[str] = None
     category_name: str
-    brand_name: str
-    season: Optional[int] = None
     options: List[ProductOptionReadSchema]
+
+
+class ProductDetailReadSchema(ProductOptionReadSchema, ProductBaseReadSchema):
+    """
+    Схема для отображения детальной информации о товаре.
+
+    Наследует:
+        - ProductOptionReadSchema: включает данные о вариантах товара и их атрибутах.
+        - ProductBaseReadSchems: включает базовую информацию о товаре.
+
+    Дополнительно:
+        - category_name (str): Название категории, к которой относится товар.
+    """
+
+    category_name: str

@@ -1,11 +1,13 @@
-from typing import Any, Generic, Optional, Type, TypeVar
+from decimal import Decimal
+from typing import Any, Dict, Generic, Optional, Type, TypeVar
 from uuid import UUID
 
 from fastapi import HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import Select, inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
 from src.core.config.logging import logger
 from src.core.constants import TextErrorConstants
@@ -110,7 +112,7 @@ class CRUDBase(Generic[ModelType, CreateShemaType, UpdateShemaType]):
         return obj
 
     async def create(
-        self, session: AsyncSession, obj_in: CreateShemaType, auto_commit: bool = True
+        self, session: AsyncSession, obj_in: CreateShemaType | dict, auto_commit: bool = True
     ) -> ModelType:
         """
         Создаёт новый объект в базе данных.
@@ -139,8 +141,11 @@ class CRUDBase(Generic[ModelType, CreateShemaType, UpdateShemaType]):
             При массовом создании объектов рекомендуется устанавливать 'auto_commit=False'
             и выполнять общий 'session.commit()' один раз после добавления всех объектов.
         """
+        if isinstance(obj_in, dict):
+            obj_data = obj_in
+        else:
+            obj_data = obj_in.model_dump()
 
-        obj_data = obj_in.model_dump()
         db_obj = self.model(**obj_data)
         try:
             session.add(db_obj)
@@ -157,7 +162,7 @@ class CRUDBase(Generic[ModelType, CreateShemaType, UpdateShemaType]):
         self,
         session: AsyncSession,
         db_obj: ModelType,
-        obj_in: UpdateShemaType,
+        obj_in: UpdateShemaType | dict[str, Any],
         auto_commit: bool = True,
     ) -> ModelType:
         """
@@ -187,8 +192,12 @@ class CRUDBase(Generic[ModelType, CreateShemaType, UpdateShemaType]):
             auto_commit=False, чтобы закоммитить все изменения одной операцией.
         """
 
-        db_obj_update = jsonable_encoder(db_obj)
-        obj_data = obj_in.model_dump(exclude_unset=True)
+        relationships = {rel.key for rel in inspect(self.model).relationships}
+        db_obj_update = jsonable_encoder(db_obj, exclude=relationships)
+        if isinstance(obj_in, dict):
+            obj_data = obj_in
+        else:
+            obj_data = obj_in.model_dump(exclude_unset=True)
         for field in db_obj_update:
             if field in obj_data:
                 setattr(db_obj, field, obj_data[field])
@@ -242,3 +251,52 @@ class CRUDBase(Generic[ModelType, CreateShemaType, UpdateShemaType]):
             await session.rollback()
             logger.error(f'{TextErrorConstants.DELETE_SERVER_LOG} {self.model.__name__}: {error}')
             raise error
+
+    def _apply_limit_offset(self, query: Select, limit: int, offset: int) -> Select:
+        """
+        Применяет пагинацию к SQL-запросу.
+
+        Параметры:
+            query (Select): SQLAlchemy запрос.
+            limit (int): Количество записей.
+            offset (int): Смещение.
+
+        Возвращает:
+            Select: Обновлённый запрос с пагинацией.
+        """
+        query_pagination = query.limit(limit).offset(offset)
+        return query_pagination
+
+    def _apply_filters_by_attribute(self, query: Select, filters: Dict[str, Any]) -> Select:
+        """
+        Применяет фильтры по атрибутам. Исользуеются модели Attribute,
+        ProductOptionAttribute поэтому импортируем только внути.
+        """
+        from src.models.attribute import Attribute, ProductOptionAttribute
+        from src.models.product import Product, ProductOption
+
+        query = query.join(ProductOption, Product.id == ProductOption.product_id)
+
+        min_price = filters.pop('min_price', None)
+        max_price = filters.pop('max_price', None)
+
+        if min_price is not None and max_price is not None:
+            query = query.where(
+                ProductOption.price.between(Decimal(min_price), Decimal(max_price))
+            )
+        elif min_price is not None:
+            query = query.where(ProductOption.price >= Decimal(min_price))
+        elif max_price is not None:
+            query = query.where(ProductOption.price <= Decimal(max_price))
+
+        for i, (name_attr, value_attr) in enumerate(filters.items()):
+            poa_alias = aliased(ProductOptionAttribute, name=f'poa_{i}')
+            attr_alias = aliased(Attribute, name=f'attr_{i}')
+
+            query = (
+                query.join(poa_alias, poa_alias.variant_id == ProductOption.id)
+                .join(attr_alias, attr_alias.id == poa_alias.attribute_id)
+                .where(attr_alias.name == name_attr)
+                .where(poa_alias.value == value_attr)
+            )
+        return query

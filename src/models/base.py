@@ -5,7 +5,7 @@ from src.core.database.annotations import created_at, int_pk, updated_at
 
 
 class Base(DeclarativeBase):
-    "Базовая модель проекта"
+    """Базовая модель проекта"""
 
     pass
 
