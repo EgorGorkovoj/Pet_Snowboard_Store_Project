@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     db_api: str
     db_host: str
     log_level: str
+    redis_url: str
+    secret: str
 
     media_folder: Path = MiscBaseConstants.BASE_DIR.joinpath(DirectoryBaseConstants.MEDIA)
     media_url: str = '/media'

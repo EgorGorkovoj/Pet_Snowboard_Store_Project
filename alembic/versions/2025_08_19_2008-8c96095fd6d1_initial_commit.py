@@ -1,8 +1,8 @@
 """Initial commit
 
-Revision ID: 08e0b7cb28d0
+Revision ID: 8c96095fd6d1
 Revises:
-Create Date: 2025-07-14 17:34:22.779733
+Create Date: 2025-08-19 20:08:44.757019
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '08e0b7cb28d0'
+revision: str = '8c96095fd6d1'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -59,15 +59,25 @@ def upgrade() -> None:
     sa.UniqueConstraint('id')
     )
     op.create_table('user',
+    sa.Column('telegram_id', sa.BigInteger(), nullable=True),
+    sa.Column('email', sa.String(), nullable=True),
+    sa.Column('hashed_password', sa.String(), nullable=True),
+    sa.Column('name', sa.String(), nullable=False),
+    sa.Column('surname', sa.String(), nullable=True),
+    sa.Column('nickname', sa.String(), nullable=True),
+    sa.Column('birth_date', sa.Date(), nullable=True),
+    sa.Column('phone_number', sa.String(), nullable=True),
+    sa.Column('is_admin', sa.Boolean(), nullable=False),
+    sa.Column('is_verified', sa.Boolean(), nullable=False),
     sa.Column('id', fastapi_users_db_sqlalchemy.generics.GUID(), nullable=False),
-    sa.Column('email', sa.String(length=320), nullable=False),
-    sa.Column('hashed_password', sa.String(length=1024), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('is_superuser', sa.Boolean(), nullable=False),
-    sa.Column('is_verified', sa.Boolean(), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('email'),
+    sa.UniqueConstraint('nickname'),
+    sa.UniqueConstraint('phone_number'),
+    sa.UniqueConstraint('telegram_id')
     )
-    op.create_index(op.f('ix_user_email'), 'user', ['email'], unique=True)
     op.create_table('cart',
     sa.Column('user_id', fastapi_users_db_sqlalchemy.generics.GUID(), nullable=False),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
@@ -226,7 +236,6 @@ def downgrade() -> None:
     op.drop_table('discount_brand')
     op.drop_table('categoryattribute')
     op.drop_table('cart')
-    op.drop_index(op.f('ix_user_email'), table_name='user')
     op.drop_table('user')
     op.drop_table('discount')
     op.drop_table('category')
